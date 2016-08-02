@@ -1,0 +1,59 @@
+---
+title: "CNARA tutorial"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is a tutorial showing the basic usage of the CNARA R software. Before we start please download the software repository from https://github.com/baudisgroup/CNARA and set the working directory to the downloaded repository.
+
+1. install dependency packages *robfilter*, *DNAcopy*, *kernlab* and *e1071* if you don't have them. Load the CNARA source file.
+```{r}
+#install.packages(c("robfilter", "DNAcopy", "kernlab", "e1071"))
+source("CNARA.R")
+```
+
+
+2. Specify the corresponding directories and files
+
+```{r}
+workPath <- getwd()
+samplePath <- file.path(workPath, "sample")
+series <- "sample_series"
+probeFileName <- "CNprobes.tab"
+segFileName <- "segments.tab"
+
+trainingFile <- file.path(workPath, "trainingSet.txt")
+outputFile <- file.path(workPath, "out.txt")
+
+arrayDir <- file.path(samplePath, series)
+arrayList <- list.files(arrayDir)
+noArray <- length(arrayList)
+```
+
+
+3. Pick a random array in the series as an example.
+```{r}
+arr <- 6
+probeFile <- file.path(arrayDir, arrayList[arr], probeFileName)
+segFile <- file.path(arrayDir, arrayList[arr], segFileName)
+```
+
+4. Read in the probe file and create a CNProbe object.
+```{r}
+newCNProbe <- readProbe(probeFile=probeFile, sampleID=arrayList[arr])
+```
+
+5. Call the method calSpeakCNAno() which performs the step-fitting algorithm estimating the number of steps and the peak value of S.
+```{r}
+newSpeakCNAno <- calSpeakCNAno(newCNProbe)
+```
+
+6. Plot the S graph
+```{r}
+plot(quality(newSpeakCNAno), xlab = "number of iterations", ylab = "S", main=arrayList[arr])
+```
+
+
