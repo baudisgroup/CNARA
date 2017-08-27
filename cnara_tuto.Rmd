@@ -7,9 +7,15 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This is a tutorial showing the basic usage of the CNARA R software. Before we start please download the software repository from https://github.com/baudisgroup/CNARA and set the working directory to the downloaded repository.
+This is a tutorial demonstrating the basic usage of the CNARA R software. Before we start please download the software repository from https://github.com/baudisgroup/CNARA and set the working directory to the downloaded repository. 
 
-1. install dependency packages *robfilter*, *DNAcopy*, *kernlab* and *e1071* if you don't have them. Load the CNARA source file.
+*CNARA.R* is the source code.  
+*code_tuto.R* is the sample code for the full usage of the CNARA software.  
+*trainingSet.txt* contains the 1522 training samples as used in the CNARA paper https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-016-3074-7.
+
+The dataset we are going to use in this tutorial can be found in the *sample* folder. The sample contains 1 series named *sample_series*, in which 5 samples are included. For each sample, there are 2 tab-delimited files, i.e. probe file *CNprobes.tab* and segmentation file *segments.tab* (segmentation file can be omitted). *CNprobes.tab* contains 4 columns, which are ID, chromosome, genomic position and the corresponding log2 copy number value. *segments.tab* contains 6 columns, which are sample id, chromosome, segment start-position, segment stop-position, the mean value for the segment and the number of probes contained in the segment. 
+
+1. To begin with, install dependency packages *robfilter*, *DNAcopy*, *kernlab* and *e1071* if you don't have them. Load the CNARA source file.
 ```{r}
 #install.packages(c("robfilter", "DNAcopy", "kernlab", "e1071"))
 source("CNARA.R")
@@ -36,7 +42,7 @@ noArray <- length(arrayList)
 
 3. Pick a random array in the series as an example.
 ```{r}
-arr <- 6
+arr <- 5
 probeFile <- file.path(arrayDir, arrayList[arr], probeFileName)
 segFile <- file.path(arrayDir, arrayList[arr], segFileName)
 ```
@@ -47,13 +53,56 @@ newCNProbe <- readProbe(probeFile=probeFile, sampleID=arrayList[arr])
 ```
 
 5. Call the method calSpeakCNAno() which performs the step-fitting algorithm estimating the number of steps and the peak value of S.
-```{r}
+```{r message=FALSE, warning=FALSE}
 newSpeakCNAno <- calSpeakCNAno(newCNProbe)
 ```
 
-6. Plot the S graph
+6. The number of segments detected by CBS for the normalised copy number profile
+```{r}
+segNumberCBS <- calCBSBreakpoints(newCNProbe)
+segNumberCBS
+```
+
+7. The derivative log ratio spread (DLRS) of the probes
+```{r}
+segSpread <- calSpread(newCNProbe, segFile=segFile)
+#segSpread <- calSpread(newCNProbe) # if you don't have segmentation file
+segSpread
+```
+
+8. Plot the S graph
 ```{r}
 plot(quality(newSpeakCNAno), xlab = "number of iterations", ylab = "S", main=arrayList[arr])
 ```
 
+9. The number of segments detected by step-fitting and the peak value of *S* as defined in the paper
+```{r}
+CNAno <- numberOfCNA(newSpeakCNAno)
+Speak <- speak(newSpeakCNAno)
 
+CNAno
+Speak
+```
+
+10. Create a new object "Metrics" for the copy number profile for quality assessment
+```{r}
+CNProfileMetrics <- createMetrics(sampleID=arrayList[arr], speak=Speak, numberOfCNA=CNAno, cbsBreakpoints=segNumberCBS, spread=segSpread)
+```
+
+11. Train a SVM classifier on the training set. The parameters are chosen as explained in the paper.
+```{r message=FALSE, warning=FALSE}
+classifier <- trainSVM(trainingFile)
+```
+
+12. Quality assessment for the copy number profile
+```{r}
+assessment <- assessQuality(CNProfileMetrics, svmClassifier=classifier)
+assessment
+```
+
+13. Plot a best fit and counter-fit for a copy number profile.
+```{r}
+plotFCF(calSpeakCNAno(newCNProbe, iterations=CNAno))
+```
+
+Please also refer to *code_tuto.R* for executable code.
