@@ -37,6 +37,7 @@ for (arr in 1:noArray) {
 
 	segNumberCBS <- calCBSBreakpoints(newCNProbe)
 	segSpread <- calSpread(newCNProbe, segFile=segFile)
+	#segSpread <- calSpread(newCNProbe) # if you don't have segmentation file
 
 	CNAno <- numberOfCNA(newSpeakCNAno)
 	Speak <- speak(newSpeakCNAno)
@@ -56,7 +57,5 @@ for (arr in 1:noArray) {
 	#	write.table(paste(strsplit(tableHeader, "\t")[[1]][entry], strsplit(tmp, "\t")[[1]][entry], sep="\t"), file = sampleLog, append = TRUE, row.names = FALSE, col.names = FALSE, quote = FALSE)
 
 	#plot a best fit and counter-fit for a copy number profile. Call calSpeakCNAno again, can be omitted if you just want the assessment without the plot.
-	pdf(file.pdf,width=6,height=4,paper='special') 
- 	plotFCF(calSpeakCNAno(newCNProbe, iterations=CNAno))
-	dev.off()
+ 	#plotFCF(calSpeakCNAno(newCNProbe, iterations=CNAno))
 }

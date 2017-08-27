@@ -85,8 +85,8 @@ setMethod("calSpeakCNAno", "CNProbe",
 
 		    quality[j] <- resultCF0/resultH0
 
-		    if (j > 40 && quality[j-30] == max(quality[(j-30):j])) 
-				break
+		    #if (j > 40 && quality[j-30] == max(quality[(j-30):j])) 
+			#	break
 
 			if (j == 1) {
 				resultH1 <- NULL
